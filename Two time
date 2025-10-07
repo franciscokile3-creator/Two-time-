@@ -1,0 +1,106 @@
+-- Rayfield Aim Assist Script (Locals at Top)
+
+-- Roblox Services & Variables
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
+local Camera = workspace.CurrentCamera
+local LocalPlayer = Players.LocalPlayer
+
+local AimToggle = false
+local Smoothness = 0.2
+local BehindOffset = 3 -- default mix value
+
+-- Load Rayfield
+local Rayfield = loadstring(game:HttpGet("https://sirius.menu/rayfield"))()
+
+-- Create Rayfield Window
+local Window = Rayfield:CreateWindow({
+    Name = "Aim Assist Settings",
+    LoadingTitle = "Loading Aim Assist...",
+    LoadingSubtitle = "Custom Smooth Aim",
+    ConfigurationSaving = {
+        Enabled = true,
+        FolderName = "AimAssistConfig",
+        FileName = "Settings"
+    }
+})
+
+-- Toggle aim assist
+Window:CreateToggle({
+    Name = "Enable Aim Assist",
+    CurrentValue = false,
+    Flag = "AimAssistToggle",
+    Callback = function(value)
+        AimToggle = value
+    end
+})
+
+-- Smoothness slider
+Window:CreateSlider({
+    Name = "Smoothness",
+    Range = {0, 1},
+    Increment = 0.01,
+    Suffix = "",
+    CurrentValue = Smoothness,
+    Flag = "SmoothnessSlider",
+    Callback = function(value)
+        Smoothness = value
+    end
+})
+
+-- Behind Offset slider
+Window:CreateSlider({
+    Name = "Behind Offset",
+    Range = {0, 10},
+    Increment = 0.1,
+    Suffix = " studs",
+    CurrentValue = BehindOffset,
+    Flag = "BehindOffsetSlider",
+    Callback = function(value)
+        BehindOffset = value
+    end
+})
+
+-- Function to find closest target
+local function GetClosestTarget()
+    local closestTarget = nil
+    local shortestDistance = math.huge
+
+    for _, player in ipairs(Players:GetPlayers()) do
+        if player ~= LocalPlayer and player.Character and player.Character:FindFirstChild("Humanoid") and player.Character.Humanoid.Health > 0 then
+            local torso = player.Character:FindFirstChild("UpperTorso") or player.Character:FindFirstChild("Torso")
+            if torso then
+                local screenPos, onScreen = Camera:WorldToViewportPoint(torso.Position)
+                if onScreen then
+                    local mousePos = UserInputService:GetMouseLocation()
+                    local distance = (Vector2.new(screenPos.X, screenPos.Y) - mousePos).magnitude
+                    if distance < shortestDistance then
+                        shortestDistance = distance
+                        closestTarget = torso
+                    end
+                end
+            end
+        end
+    end
+
+    return closestTarget
+end
+
+-- Function to aim behind torso
+local function AimAtTarget(targetTorso)
+    if targetTorso then
+        local behindPosition = targetTorso.CFrame * CFrame.new(0, 0, BehindOffset)
+        local targetPos = behindPosition.Position
+        local currentCFrame = Camera.CFrame
+        Camera.CFrame = currentCFrame:Lerp(CFrame.new(currentCFrame.Position, targetPos), Smoothness)
+    end
+end
+
+-- Main loop
+RunService.RenderStepped:Connect(function()
+    if AimToggle then
+        local targetTorso = GetClosestTarget()
+        AimAtTarget(targetTorso)
+    end
+end)
