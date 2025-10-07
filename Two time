@@ -1,4 +1,4 @@
--- Rayfield Aim Assist Script (Locals at Top)
+-- Rayfield Aim Assist Script with Tab
 
 -- Roblox Services & Variables
 local Players = game:GetService("Players")
@@ -26,8 +26,11 @@ local Window = Rayfield:CreateWindow({
     }
 })
 
--- Toggle aim assist
-Window:CreateToggle({
+-- Create Tab
+local Tab = Window:CreateTab("Aim Assist", 4483362458) -- Title, Image ID
+
+-- Toggle aim assist inside tab
+Tab:CreateToggle({
     Name = "Enable Aim Assist",
     CurrentValue = false,
     Flag = "AimAssistToggle",
@@ -36,8 +39,8 @@ Window:CreateToggle({
     end
 })
 
--- Smoothness slider
-Window:CreateSlider({
+-- Smoothness slider inside tab
+Tab:CreateSlider({
     Name = "Smoothness",
     Range = {0, 1},
     Increment = 0.01,
@@ -49,8 +52,8 @@ Window:CreateSlider({
     end
 })
 
--- Behind Offset slider
-Window:CreateSlider({
+-- Behind Offset slider inside tab
+Tab:CreateSlider({
     Name = "Behind Offset",
     Range = {0, 10},
     Increment = 0.1,
